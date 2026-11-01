@@ -1,0 +1,12 @@
+.venv/
+venv/
+env/
+.env
+*.env
+__pycache__/
+*.pyc
+data/
+data_old_biased/
+nyc311_data.csv
+.vscode/
+*.code-workspace

@@ -1,0 +1,9 @@
+requests
+pandas
+matplotlib
+plotly
+streamlit
+sqlalchemy
+pymysql
+cryptography
+python-dotenv

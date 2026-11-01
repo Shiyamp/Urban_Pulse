@@ -1,0 +1,18 @@
+,value
+count,101858.0
+mean,327.46
+median,7.96
+mode (rounded hours),1.0
+min,0.0
+max,22628.29
+range,22628.29
+Q1,0.99
+Q3,81.56
+IQR,80.57
+variance,1578153.63
+std,1256.25
+skewness,6.84
+lower_fence,-119.87
+upper_fence,202.41
+outlier_count,16867.0
+outlier_pct,16.56
