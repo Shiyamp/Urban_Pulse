@@ -2,7 +2,7 @@
 
 A pilot data project that extracts NYC 311 service-request data from the NYC Open Data API, cleans it, analyses it in Python and MySQL, and presents it in a Streamlit dashboard.
 
-**Author:** _Your Name_  
+**Author:** Shiyamp 
 **Data source:** [NYC 311 Service Requests](https://data.cityofnewyork.us/resource/erm2-nwe9) (NYC Open Data, dataset `erm2-nwe9`)  
 **Period covered:** 1 Jan 2024 to 31 Dec 2024
 
