@@ -113,6 +113,4 @@ The result is **103,716 rows**. Counts are about 1/33 of citywide volumes, so re
 - Latitude and longitude validity uses a rough rectangle around NYC, so a few points just outside the city may pass.
 - Categories with few valid cases have unstable medians.
 
-## Security note
 
-The MySQL password is stored only in a local `.env` file, which is excluded by `.gitignore`. Never commit it.
