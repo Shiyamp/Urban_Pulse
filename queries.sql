@@ -1,4 +1,3 @@
--- URBAN PULSE - 15 analyst tasks (MySQL 8+). Run in MySQL Workbench.
 USE urban_pulse_db;
 
 -- 1. Total distinct request volume
