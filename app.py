@@ -8,7 +8,7 @@ import streamlit as st
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 
-from config import CLEAN_FILE, DATE_COLS, MYSQL
+from config import CLEAN_FILE, DATE_COLS, DEPLOY_FILE, MYSQL
 
 st.set_page_config(page_title="Urban Pulse", page_icon="🏙️", layout="wide")
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -16,7 +16,11 @@ WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", 
 
 @st.cache_data(show_spinner="Loading CSV...")
 def load_csv():
-    return pd.read_csv(CLEAN_FILE, parse_dates=DATE_COLS, low_memory=False)
+    # Use the full clean file on your PC; on Streamlit Cloud use the small committed copy
+    path = CLEAN_FILE if CLEAN_FILE.exists() else DEPLOY_FILE
+    columns = pd.read_csv(path, nrows=0).columns
+    dates = [c for c in DATE_COLS if c in columns]  # the slim file has fewer date columns
+    return pd.read_csv(path, parse_dates=dates, low_memory=False)
 
 
 @st.cache_data(show_spinner="Querying MySQL...")
@@ -32,11 +36,13 @@ def fmt(value, suffix=""):
 
 # ---------------- Load data (with readable error handling) ----------------
 st.title("🏙️ Urban Pulse - NYC 311 Complaint Analytics")
-source = st.sidebar.selectbox("Data source", ["CSV (pilot)", "MySQL"])
+# MySQL is offered only when a password is configured (i.e. on your own PC, not on the cloud)
+sources = ["CSV (pilot)"] + (["MySQL"] if MYSQL["password"] else [])
+source = st.sidebar.selectbox("Data source", sources)
 try:
     df = load_csv() if source.startswith("CSV") else load_mysql()
 except FileNotFoundError:
-    st.error("Cleaned CSV not found. Run 01_extract.py and 02_clean.py first.")
+    st.error("Data file not found. Run 01_extract.py to 02_clean.py (and 05_make_dashboard_data.py for the cloud copy).")
     st.stop()
 except Exception as err:  # noqa: BLE001
     st.error(f"Could not load data from {source}. Check MySQL is running and .env is correct.\n\n{err}")
@@ -86,29 +92,29 @@ with t1:
     top.columns = ["complaint_type", "requests"]
     a.plotly_chart(px.bar(top, x="requests", y="complaint_type", orientation="h",
                           title="Top 10 complaint types").update_yaxes(autorange="reversed"),
-                   use_container_width=True)
+                   width="stretch")
     bor = f["borough"].value_counts().reset_index()
     bor.columns = ["borough", "requests"]
     b.plotly_chart(px.bar(bor, x="borough", y="requests", title="Requests by borough"),
-                   use_container_width=True)
+                   width="stretch")
     a, b = st.columns(2)
     ag = f["agency"].value_counts().head(10).reset_index()
     ag.columns = ["agency", "requests"]
     a.plotly_chart(px.bar(ag, x="agency", y="requests", title="Agency workload (top 10)"),
-                   use_container_width=True)
+                   width="stretch")
     stt = f["status"].value_counts().reset_index()
     stt.columns = ["status", "requests"]
     b.plotly_chart(px.pie(stt, names="status", values="requests", title="Recorded status"),
-                   use_container_width=True)
+                   width="stretch")
 
 with t2:
     monthly = f.groupby("created_month").size().reset_index(name="requests")
     st.plotly_chart(px.line(monthly, x="created_month", y="requests", markers=True,
-                            title="Monthly request trend"), use_container_width=True)
+                            title="Monthly request trend"), width="stretch")
     heat = (f.groupby(["created_weekday", "created_hour"]).size().unstack(fill_value=0)
               .reindex(WEEKDAYS))
     st.plotly_chart(px.imshow(heat, aspect="auto", labels=dict(x="Hour", y="Weekday", color="Requests"),
-                              title="Demand by weekday and hour"), use_container_width=True)
+                              title="Demand by weekday and hour"), width="stretch")
 
 with t3:
     if valid.empty:
@@ -117,15 +123,15 @@ with t3:
         clipped = valid[valid <= valid.quantile(0.99)]
         a, b = st.columns(2)
         a.plotly_chart(px.histogram(clipped, nbins=50, title="Resolution hours (to 99th percentile)"),
-                       use_container_width=True)
-        b.plotly_chart(px.box(clipped, title="Boxplot (to 99th percentile)"), use_container_width=True)
+                       width="stretch")
+        b.plotly_chart(px.box(clipped, title="Boxplot (to 99th percentile)"), width="stretch")
         st.write(f"Mean {valid.mean():,.1f} h | Median {valid.median():,.1f} h | "
                  f"Skewness {valid.skew():,.2f} (above 1 means strongly right-skewed: trust the median)")
         grp = (f.dropna(subset=["resolution_hours"]).groupby("complaint_type")["resolution_hours"]
                  .agg(valid_cases="count", median_hours="median").reset_index())
         grp = grp[grp["valid_cases"] >= 30].sort_values("median_hours", ascending=False)
         st.subheader("Median resolution by complaint type (30+ valid cases)")
-        st.dataframe(grp.head(20), use_container_width=True)
+        st.dataframe(grp.head(20), width="stretch")
         st.caption("Outliers are prompts for investigation, not errors: long cases can be legitimate.")
 
 with t4:
@@ -136,10 +142,10 @@ with t4:
     st.subheader("Borough summary")
     st.dataframe(f.groupby("borough").agg(requests=("unique_key", "count"),
                                           closure_rate_pct=("is_closed", lambda s: round(100 * s.mean(), 1))),
-                 use_container_width=True)
+                 width="stretch")
 
 with t5:
     st.write("Filtered record preview (first 500 rows)")
-    st.dataframe(f.head(500), use_container_width=True)
+    st.dataframe(f.head(500), width="stretch")
     st.download_button("Download filtered data (CSV)", f.to_csv(index=False).encode("utf-8"),
                        "urban_pulse_filtered.csv", "text/csv")

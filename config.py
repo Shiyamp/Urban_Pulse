@@ -40,6 +40,7 @@ FIELDS = [
 RAW_FILE = RAW_DIR / "nyc311_raw.csv"
 META_FILE = RAW_DIR / "extraction_metadata.json"
 CLEAN_FILE = CLEAN_DIR / "nyc311_clean.csv"
+DEPLOY_FILE = BASE_DIR / "dashboard_data" / "nyc311_dashboard.csv.gz"  # small file committed to GitHub for the cloud app
 LOG_FILE = CLEAN_DIR / "cleaning_log.json"
 DICT_FILE = CLEAN_DIR / "data_dictionary.csv"
 
