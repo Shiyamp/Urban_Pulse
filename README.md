@@ -49,7 +49,7 @@ NYC Open Data API -> 01_extract.py -> data/raw/nyc311_raw.csv
 
 1. **Clone and enter the project**
    ```powershell
-   git clone https://github.com/YOUR_USERNAME/Urban_Pulse.git
+   git clone https://github.com/Shiyamp/Urban_Pulse.git
    cd Urban_Pulse
    ```
 2. **Create a virtual environment and install packages**
